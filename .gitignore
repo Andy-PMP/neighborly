@@ -7,5 +7,6 @@ pipeline/.cache/
 node_modules/
 web/dist/
 web/.astro/
+web/public/data/
 .DS_Store
 Thumbs.db

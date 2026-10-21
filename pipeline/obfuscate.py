@@ -10,7 +10,8 @@ SALT = "nearby"
 
 
 def _key(puzzle_id: int) -> bytes:
-    return f"{SALT}:{puzzle_id}".encode()
+    # id first, so even short answers get a key that differs per puzzle
+    return f"{puzzle_id}:{SALT}".encode()
 
 
 def _xor(data: bytes, key: bytes) -> bytes:

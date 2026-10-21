@@ -604,7 +604,6 @@ poor
 empty
 heavy
 sweet
-bitter
 wild
 frozen
 tiny

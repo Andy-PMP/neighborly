@@ -1,7 +1,7 @@
 {
   "built": "2026-10-21",
   "source": "GloVe 6B 300d (PDDL 1.0)",
-  "puzzles": 599,
+  "puzzles": 598,
   "vocab": 27780,
   "dims": 96,
   "slots": [
@@ -15,7 +15,7 @@
     1
   ],
   "reduction": {
-    "spearman": 0.906,
-    "top100_overlap": 0.715
+    "spearman": 0.907,
+    "top100_overlap": 0.711
   }
 }
