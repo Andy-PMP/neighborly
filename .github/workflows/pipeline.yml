@@ -1,0 +1,21 @@
+name: pipeline
+
+on:
+  push:
+    paths: ["pipeline/**", "data/**", ".github/workflows/pipeline.yml"]
+  pull_request:
+    paths: ["pipeline/**", "data/**", ".github/workflows/pipeline.yml"]
+
+jobs:
+  test-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - run: pip install -r pipeline/requirements.txt
+      - run: ruff check pipeline
+      - run: ruff format --check pipeline
+      - run: pytest
+      - run: python pipeline/validate.py
