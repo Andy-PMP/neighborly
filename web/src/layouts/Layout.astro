@@ -1,0 +1,32 @@
+---
+import "../styles/global.css";
+import Nav from "../components/Nav.astro";
+import StatsDialog from "../components/StatsDialog.astro";
+
+interface Props {
+  title: string;
+  description: string;
+  current: "game" | "how";
+}
+const { title, description, current } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <main>
+      <header>
+        <Nav current={current} />
+        <slot name="header" />
+      </header>
+      <slot />
+    </main>
+    <StatsDialog />
+  </body>
+</html>

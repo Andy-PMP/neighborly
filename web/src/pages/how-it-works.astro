@@ -1,0 +1,101 @@
+---
+import { Content } from "../../../docs/how-it-works.md";
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout
+  title="How Neighborly works"
+  description="How word embeddings and nearest neighbors power the Neighborly word game, in plain language."
+  current="how"
+>
+  <article class="prose">
+    <h1>How Neighborly works</h1>
+    <Content />
+
+    <h2>Credits</h2>
+    <ul class="credits">
+      <li>
+        <a href="https://nlp.stanford.edu/projects/glove/">GloVe</a> word vectors (glove.6B, 300
+        dimensions) by Jeffrey Pennington, Richard Socher and Christopher D. Manning, Stanford NLP.
+        Public domain under the
+        <a href="https://opendatacommons.org/licenses/pddl/1-0/">ODC Public Domain Dedication and License 1.0</a>.
+      </li>
+      <li>
+        <a href="http://wordlist.aspell.net/">SCOWL</a> word lists by Kevin Atkinson and contributors,
+        used to keep the vocabulary to real, common English words. Copyright 2000–2020; used under
+        its permissive license.
+      </li>
+      <li>
+        <a href="https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words">List of Dirty, Naughty, Obscene, and Otherwise Bad Words</a>
+        (English) by Shutterstock, used as a blocklist. Licensed
+        <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.
+      </li>
+      <li>
+        <a href="https://www.nltk.org/">NLTK</a> Snowball stemmer, Apache 2.0, used to filter out
+        giveaway clues.
+      </li>
+    </ul>
+  </article>
+</Layout>
+
+<script>
+  import { puzzleIdForDay } from "../lib/daily";
+  import { decodeTarget } from "../lib/decode";
+  import { finishedDays } from "../lib/stats";
+  import { browserStore, loadSave } from "../lib/storage";
+  import type { PuzzleFile } from "../lib/types";
+  import { dataUrl, href } from "../scripts/env";
+  import { renderMap } from "../scripts/map-render";
+
+  const slot = document.getElementById("your-map");
+
+  function message(text: string, linkText?: string) {
+    const p = document.createElement("p");
+    p.className = "map-empty";
+    p.textContent = text;
+    if (linkText) {
+      const a = document.createElement("a");
+      a.href = href();
+      a.textContent = linkText;
+      p.append(" ", a);
+    }
+    slot!.replaceChildren(p);
+  }
+
+  async function main() {
+    if (!slot) return;
+    // Only finished daily games: an in-progress puzzle must never be mapped (it names the answer).
+    const days = finishedDays(loadSave(browserStore()).daily);
+    if (days.length === 0) {
+      message("Finish a daily puzzle and its map will appear here.", "Play today's puzzle →");
+      return;
+    }
+
+    const res = await fetch(`${dataUrl}puzzles.json`);
+    if (!res.ok) throw new Error("Could not load puzzles");
+    const { puzzles } = (await res.json()) as PuzzleFile;
+
+    const label = document.createElement("label");
+    label.className = "map-picker";
+    label.textContent = "Puzzle ";
+    const select = document.createElement("select");
+    for (const day of days) select.append(new Option(`#${day}`, String(day)));
+    label.append(select);
+    const figure = document.createElement("figure");
+    figure.className = "map";
+    slot.replaceChildren(label, figure);
+
+    const show = () => {
+      const day = Number(select.value);
+      const puzzle = puzzles.find((p) => p.id === puzzleIdForDay(day, puzzles.length))!;
+      renderMap(figure, puzzle, decodeTarget(puzzle.t, puzzle.id));
+    };
+    select.addEventListener("change", show);
+    show();
+  }
+
+  main().catch((err) => {
+    console.error(err);
+    message("Couldn't load the puzzle map. Please reload.");
+  });
+</script>

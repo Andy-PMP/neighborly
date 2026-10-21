@@ -1,7 +1,7 @@
 [project]
 name = "nearby-pipeline"
 version = "0.1.0"
-description = "Offline data pipeline for the Nearby word game"
+description = "Offline data pipeline for the Neighborly word game"
 requires-python = ">=3.12"
 
 [tool.ruff]

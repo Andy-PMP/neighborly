@@ -2,9 +2,9 @@ name: web
 
 on:
   push:
-    paths: ["web/**", "data/**", "package.json", "package-lock.json", ".github/workflows/web.yml"]
+    paths: ["web/**", "data/**", "docs/**", "package.json", "package-lock.json", ".github/workflows/web.yml"]
   pull_request:
-    paths: ["web/**", "data/**", "package.json", "package-lock.json", ".github/workflows/web.yml"]
+    paths: ["web/**", "data/**", "docs/**", "package.json", "package-lock.json", ".github/workflows/web.yml"]
 
 jobs:
   test-and-build:

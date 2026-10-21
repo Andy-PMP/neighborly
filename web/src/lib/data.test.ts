@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { decodeTarget } from "./decode";
 import { applyGuess, newGame, type Judge } from "./game";
+import { DEFAULT_MAP, layoutMap, overlapArea } from "./map";
 import { TOTAL_CLUES } from "./score";
 import type { PuzzleFile, VocabFile } from "./types";
 import { WordVectors } from "./vectors";
@@ -38,6 +39,31 @@ describe("real data", () => {
       if (near < far) warmer++;
     }
     expect(warmer).toBeGreaterThanOrEqual(45);
+  });
+
+  // Label boxes include line spacing, so a corner touch (< 10% of the smaller box) leaves the
+  // glyphs apart. At the time of writing 596/598 maps had zero overlap and the rest ~4%.
+  it("lays out every puzzle's map with labels in frame and no real label collisions", () => {
+    const collisions: string[] = [];
+    for (const p of puzzles) {
+      const target = decodeTarget(p.t, p.id);
+      const texts = [target, ...p.clues.map((c, i) => `${i + 1} · ${c.w}`)];
+      const { labels } = layoutMap(p.map, texts);
+      for (const { box } of labels) {
+        expect(box.x).toBeGreaterThanOrEqual(0);
+        expect(box.x + box.w).toBeLessThanOrEqual(DEFAULT_MAP.width);
+      }
+      let worst = 0;
+      labels.forEach((a, i) =>
+        labels.forEach((b, j) => {
+          if (j <= i) return;
+          const smaller = Math.min(a.box.w * a.box.h, b.box.w * b.box.h);
+          worst = Math.max(worst, overlapArea(a.box, b.box) / smaller);
+        }),
+      );
+      if (worst >= 0.1) collisions.push(`${p.id}: ${(worst * 100).toFixed(0)}%`);
+    }
+    expect(collisions, `puzzles with overlapping labels: ${collisions.length}`).toEqual([]);
   });
 
   it("plays puzzle 1 to a win and to a loss", () => {

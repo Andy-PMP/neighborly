@@ -1,0 +1,61 @@
+---
+// Stats dialog, opened by the nav's Stats button on every page.
+---
+
+<dialog id="stats" aria-labelledby="stats-title">
+  <h2 id="stats-title">Your stats</h2>
+  <p class="stats-note">Daily puzzles only, saved in this browser.</p>
+  <dl class="stat-grid">
+    <div><dt>Played</dt><dd id="st-played">0</dd></div>
+    <div><dt>Win %</dt><dd id="st-winpct">0</dd></div>
+    <div><dt>Streak</dt><dd id="st-streak">0</dd></div>
+    <div><dt>Best streak</dt><dd id="st-max">0</dd></div>
+  </dl>
+  <h3>Solved on clue</h3>
+  <ol id="st-dist" class="dist"></ol>
+  <p id="st-unavailable" class="stats-note" hidden>
+    This browser isn't letting the game save, so stats won't be kept.
+  </p>
+  <form method="dialog"><button type="submit">Close</button></form>
+</dialog>
+
+<script>
+  import { dayNumber } from "../lib/daily";
+  import { computeStats } from "../lib/stats";
+  import { browserStore, loadSave } from "../lib/storage";
+  import { now } from "../scripts/env";
+
+  const $ = (id: string) => document.getElementById(id)!;
+
+  function render() {
+    // Read fresh each time: the game page saves after every guess.
+    const store = browserStore();
+    const s = computeStats(loadSave(store).daily, dayNumber(now()));
+    $("st-played").textContent = String(s.played);
+    $("st-winpct").textContent = String(s.winPct);
+    $("st-streak").textContent = String(s.currentStreak);
+    $("st-max").textContent = String(s.maxStreak);
+    const most = Math.max(1, ...s.distribution);
+    $("st-dist").replaceChildren(
+      ...s.distribution.map((n, i) => {
+        const li = document.createElement("li");
+        li.setAttribute("aria-label", `Clue ${i + 1}: ${n} ${n === 1 ? "win" : "wins"}`);
+        const label = document.createElement("span");
+        label.className = "dist-label";
+        label.textContent = String(i + 1);
+        const bar = document.createElement("span");
+        bar.className = "dist-bar";
+        bar.textContent = String(n);
+        bar.style.width = `${Math.max(8, (n / most) * 100)}%`;
+        li.append(label, bar);
+        return li;
+      }),
+    );
+    $("st-unavailable").hidden = store !== null;
+  }
+
+  $("nav-stats").addEventListener("click", () => {
+    render();
+    ($("stats") as HTMLDialogElement).showModal();
+  });
+</script>

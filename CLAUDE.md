@@ -1,4 +1,4 @@
-# Nearby
+# Neighborly
 
 Daily browser word game: guess a hidden word from its embedding nearest neighbors, revealed farthest → closest. Full spec in [SPEC.md](SPEC.md). Portfolio piece; runs fully client-side (no server, no runtime API calls).
 
@@ -43,9 +43,11 @@ Windows PowerShell 5.1 drops `--` when passing args through npm, so `npm run pre
 - Pipeline scripts run as `python pipeline\<script>.py`; they import each other as top-level modules (`from paths import ...`). Shared paths live in `pipeline/paths.py`.
 - Any change to targets, filters or blocklists: rebuild, then validate; never hand-edit `data/`.
 - Answers in `puzzles.json` are obfuscated (XOR + base64, see `pipeline/obfuscate.py`); the front end must mirror that decoding exactly.
-- Front end: game logic lives in pure, unit-tested modules in `web/src/lib/` (decode, normalize, vectors, feedback, score, game, daily, practice, share, stats, storage); `web/src/pages/index.astro` holds only markup plus one client script that wires the DOM. Keep new logic in `lib/` with tests.
+- Front end: game logic lives in pure, unit-tested modules in `web/src/lib/` (decode, normalize, vectors, feedback, score, game, daily, practice, share, stats, storage, map); browser-only helpers in `web/src/scripts/` (env, map-render); shared chrome in `web/src/layouts/Layout.astro` and `web/src/components/` (Nav, StatsDialog); `web/src/pages/index.astro` holds only markup plus one client script that wires the DOM. Keep new logic in `lib/` with tests.
 - Game rules (P2): unknown, repeated and empty guesses cost nothing; a wrong known word reveals the next clue; a wrong guess on clue 8 loses. Score = 9 − clue number solved on (0 if lost). Warm/cold bands by vocab rank: Hot ≤10, Warm ≤100, Mild ≤1,000, Cool ≤5,000, else Cold.
-- P3 rules: daily = `/`; practice = `/?practice[=N]`, past puzzles only (none on launch day). Only daily games are saved (key `nearby:v1`, in-progress too, so reloads resume and can't replay). Streak = consecutive daily wins; a loss or skipped day resets it; an unfinished today keeps yesterday's streak. Share text: `Nearby #N — got it on clue c/8` or `Nearby #N — missed it (8 clues)`, then one emoji per guess, then the URL.
+- P3 rules: daily = `/`; practice = `/?practice[=N]`, past puzzles only (none on launch day). Only daily games are saved (key `nearby:v1`, in-progress too, so reloads resume and can't replay). Streak = consecutive daily wins; a loss or skipped day resets it; an unfinished today keeps yesterday's streak. Share text: `Neighborly #N — got it on clue c/8` or `Neighborly #N — missed it (8 clues)`, then one emoji per guess, then the URL.
+- Name: the game is **Neighborly** (renamed from Nearby during P4). Internal identifiers keep "nearby" on purpose: storage key `nearby:v1`, obfuscation salt, repo/folder and npm package names. Don't rename those (it would wipe saves or change every answer token).
+- P4: the 2D map names the answer, so it is only drawn after a game ends (`renderEnd`) or, on `/how-it-works/`, for daily games in `finishedDays(save)`. Label layout is in `lib/map.ts`; `data.test.ts` lays out all real puzzles and fails on real label collisions. Explainer text is `docs/how-it-works.md` (plain Markdown + raw HTML, imported by `web/src/pages/how-it-works.astro`); its example words must not be puzzle answers.
 - Clue slots stay `[30, 22, 16, 11, 7, 4, 2, 1]` (owner chose 30 over 25/20 as harder).
 - Commit only when asked.
 
@@ -56,6 +58,7 @@ Windows PowerShell 5.1 drops `--` when passing args through npm, so `npm run pre
 - [x] **P2 Core game**: Astro scaffold in `web/`, load data, one puzzle playable end to end, warm/cold feedback, guess normalization, Vitest (56 tests, incl. real-data integration)
   - [x] Owner play-test in a browser: went well; "bitter" removed as a target (news-sense vectors), data rebuilt to 598 puzzles before launch
 - [x] **P3 Daily/practice/share/stats**: UTC-date puzzle number, practice mode, share line, localStorage stats + streaks (88 tests)
-  - [ ] Owner play-test of P3 in a browser (no browser tool in the P3 session)
-- [ ] **P4 How it works + 2D map**: docs content, map revealed after finishing
+  - [x] Owner play-test of P3 in a browser: no notes
+- [x] **P4 How it works + 2D map**: `docs/how-it-works.md` rendered at `/how-it-works/`; map on the end screen and (finished daily games only) on the explainer; renamed the game to Neighborly (101 tests)
+  - [ ] Owner play-test of P4 in a browser (no browser tool in the P4 session): map look at phone width, dark mode, explainer read-through
 - [ ] **P5 Polish + deploy**: accessibility pass, mobile, GitHub Pages deploy, link from portfolio

@@ -16,6 +16,15 @@ export interface Stats {
 
 const won = (g: GameState | undefined) => g?.status === "won";
 
+/** Day numbers of finished daily games, most recent first. In-progress games are excluded. */
+export function finishedDays(daily: Record<string, GameState>): number[] {
+  return Object.entries(daily)
+    .filter(([, g]) => g.status !== "playing")
+    .map(([day]) => Number(day))
+    .filter((d) => Number.isInteger(d) && d >= 1)
+    .sort((a, b) => b - a);
+}
+
 /**
  * Streak rules: a streak is a run of consecutive daily puzzles solved. A loss or a skipped day
  * ends it. While today's puzzle is unfinished (or unplayed), the streak through yesterday still

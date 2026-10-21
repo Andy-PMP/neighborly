@@ -1,4 +1,4 @@
-# Nearby
+# Neighborly
 
 A daily word game built on word embeddings. You see clue words one at a time — the hidden word's nearest neighbors in meaning, from farthest to closest — and try to guess the word in as few clues as possible. Everything runs in the browser.
 

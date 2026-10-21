@@ -8,8 +8,8 @@ export function shareText(day: number, state: GameState, url?: string): string {
   if (state.status === "playing") throw new Error("Game isn't finished");
   const headline =
     state.status === "won"
-      ? `Nearby #${day} — got it on clue ${state.guesses.at(-1)!.clue}/${TOTAL_CLUES}`
-      : `Nearby #${day} — missed it (${TOTAL_CLUES} clues)`;
+      ? `Neighborly #${day} — got it on clue ${state.guesses.at(-1)!.clue}/${TOTAL_CLUES}`
+      : `Neighborly #${day} — missed it (${TOTAL_CLUES} clues)`;
   const trail = state.guesses
     .map((g) => (g.rank === null ? "✅" : temperature(g.rank).emoji))
     .join("");

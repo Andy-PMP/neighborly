@@ -1,0 +1,46 @@
+---
+interface Props {
+  /** "game": the brand is the page's h1 and the script marks Daily/Practice; "how": this page. */
+  current: "game" | "how";
+}
+const { current } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+---
+
+<div class="topbar">
+  {
+    current === "game" ? (
+      <h1 class="brand">Neighborly</h1>
+    ) : (
+      <a class="brand" href={base}>
+        Neighborly
+      </a>
+    )
+  }
+  <nav aria-label="Site">
+    <a id="nav-daily" href={base}>Daily</a>
+    <a id="nav-practice" href={`${base}?practice`}>Practice</a>
+    <a
+      id="nav-how"
+      href={`${base}how-it-works/`}
+      aria-current={current === "how" ? "page" : undefined}>How it works</a
+    >
+    <button id="nav-stats" type="button" class="link-button">Stats</button>
+  </nav>
+</div>
+
+<script>
+  import { href } from "../scripts/env";
+
+  // Keep the dev-only ?date override when moving between pages.
+  const links: [string, string, Record<string, string>][] = [
+    ["nav-daily", "", {}],
+    ["nav-practice", "", { practice: "" }],
+    ["nav-how", "how-it-works/", {}],
+  ];
+  for (const [id, path, query] of links) {
+    (document.getElementById(id) as HTMLAnchorElement).href = href(path, query);
+  }
+  const brand = document.querySelector<HTMLAnchorElement>("a.brand");
+  if (brand) brand.href = href();
+</script>

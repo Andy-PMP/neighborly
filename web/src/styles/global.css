@@ -390,6 +390,155 @@ dialog h3 {
   border-radius: 4px;
 }
 
+.brand {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.end-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+}
+
+/* ---------- map ---------- */
+
+.map {
+  margin: 0 0 1rem;
+}
+
+.map-svg {
+  display: block;
+  width: 100%;
+  max-width: 30rem;
+  height: auto;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.map-line {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.map-dot {
+  fill: var(--muted);
+}
+
+.map-target {
+  fill: var(--accent);
+}
+
+.map-label {
+  fill: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.map-label-target {
+  font-weight: 700;
+  fill: var(--accent);
+}
+
+.map figcaption,
+.sketch figcaption {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-top: 0.35rem;
+}
+
+/* ---------- how it works ---------- */
+
+.prose h1 {
+  font-size: 1.75rem;
+  margin: 0.5rem 0 1rem;
+}
+
+.prose h2 {
+  margin: 2rem 0 0.5rem;
+}
+
+.prose p,
+.prose li {
+  max-width: 38rem;
+}
+
+.prose blockquote {
+  margin: 0.75rem 0;
+  padding: 0.5rem 0.9rem;
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.prose blockquote p {
+  margin: 0;
+}
+
+.sketch {
+  margin: 1rem 0;
+}
+
+.sketch svg {
+  display: block;
+  width: 100%;
+  max-width: 30rem;
+  height: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.sketch-group {
+  fill: var(--accent);
+}
+
+.sketch-labels {
+  fill: var(--text);
+}
+
+.sketch-notes {
+  fill: var(--muted);
+  font-style: italic;
+}
+
+.your-map {
+  margin: 1rem 0;
+}
+
+.map-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+  font-weight: 600;
+}
+
+.map-picker select {
+  font: inherit;
+  min-height: 2.5rem;
+  padding: 0 0.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.map-empty {
+  padding: 0.9rem 1rem;
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+
+.credits li {
+  margin-bottom: 0.5rem;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

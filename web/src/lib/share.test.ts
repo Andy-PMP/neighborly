@@ -24,16 +24,16 @@ const lost: GameState = {
 
 describe("shareText", () => {
   it("formats a win", () => {
-    expect(shareText(12, won)).toBe("Nearby #12 — got it on clue 3/8\n❄️🌤️✅");
+    expect(shareText(12, won)).toBe("Neighborly #12 — got it on clue 3/8\n❄️🌤️✅");
   });
 
   it("formats a loss", () => {
-    expect(shareText(40, lost)).toBe("Nearby #40 — missed it (8 clues)\n🔥☀️🌤️🌥️❄️🔥☀️🌤️");
+    expect(shareText(40, lost)).toBe("Neighborly #40 — missed it (8 clues)\n🔥☀️🌤️🌥️❄️🔥☀️🌤️");
   });
 
   it("appends the link when given", () => {
     expect(shareText(12, won, "https://example.com/nearby/").split("\n")).toEqual([
-      "Nearby #12 — got it on clue 3/8",
+      "Neighborly #12 — got it on clue 3/8",
       "❄️🌤️✅",
       "https://example.com/nearby/",
     ]);
@@ -45,7 +45,7 @@ describe("shareText", () => {
       status: "won",
       guesses: [{ word: "lake", rank: null, clue: 1 }],
     };
-    expect(shareText(1, first)).toBe("Nearby #1 — got it on clue 1/8\n✅");
+    expect(shareText(1, first)).toBe("Neighborly #1 — got it on clue 1/8\n✅");
   });
 
   it("never contains guessed words", () => {

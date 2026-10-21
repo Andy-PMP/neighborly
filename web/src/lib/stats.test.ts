@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { GameState } from "./game";
-import { computeStats } from "./stats";
+import { computeStats, finishedDays } from "./stats";
 
 const W = (clue: number): GameState => ({
   revealed: clue,
@@ -12,6 +12,20 @@ const P: GameState = { revealed: 2, status: "playing", guesses: [] };
 
 const days = (entries: Record<number, GameState>) =>
   Object.fromEntries(Object.entries(entries).map(([d, g]) => [String(d), g]));
+
+describe("finishedDays (which puzzles may show a map)", () => {
+  it("lists finished games only, most recent first", () => {
+    expect(finishedDays(days({ 2: W(3), 5: P, 3: L, 1: W(1) }))).toEqual([3, 2, 1]);
+  });
+
+  it("never includes an in-progress game", () => {
+    expect(finishedDays(days({ 7: P }))).toEqual([]);
+  });
+
+  it("ignores junk keys", () => {
+    expect(finishedDays({ abc: W(1), "0": W(1), "4": W(2) })).toEqual([4]);
+  });
+});
 
 describe("computeStats", () => {
   it("is all zeros with no games", () => {

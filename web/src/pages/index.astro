@@ -1,411 +1,343 @@
 ---
-import "../styles/global.css";
+import Layout from "../layouts/Layout.astro";
 
 const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Guess the hidden word from its nearest neighbors in meaning." />
-    <title>Nearby</title>
-  </head>
-  <body>
-    <main>
-      <header>
-        <div class="topbar">
-          <h1>Nearby</h1>
-          <nav aria-label="Game mode">
-            <a id="nav-daily" href={base}>Daily</a>
-            <a id="nav-practice" href={`${base}?practice`}>Practice</a>
-            <button id="nav-stats" type="button" class="link-button">Stats</button>
-          </nav>
-        </div>
-        <p class="meta"><span id="puzzle-label">Loading…</span> <span id="counter"></span></p>
-      </header>
+<Layout
+  title="Neighborly"
+  description="Guess the hidden word from its nearest neighbors in meaning."
+  current="game"
+>
+  <p slot="header" class="meta"><span id="puzzle-label">Loading…</span> <span id="counter"></span></p>
 
-      <p class="intro">
-        Each clue is a word close in meaning to a hidden word, starting far away and getting
-        closer. Every wrong guess reveals the next clue.
-      </p>
+  <p class="intro">
+    Each clue is a word close in meaning to a hidden word, starting far away and getting closer.
+    Every wrong guess reveals the next clue.
+  </p>
 
-      <div id="play">
-        <ol id="clues" class="clues" aria-label="Clues"></ol>
+  <div id="play">
+    <ol id="clues" class="clues" aria-label="Clues"></ol>
 
-        <form id="guess-form" autocomplete="off">
-          <label for="guess" class="visually-hidden">Your guess</label>
-          <input
-            id="guess"
-            name="guess"
-            type="text"
-            placeholder="Type a guess"
-            autocapitalize="none"
-            autocorrect="off"
-            spellcheck="false"
-            maxlength="30"
-            disabled
-          />
-          <button type="submit" disabled>Guess</button>
-        </form>
-      </div>
+    <form id="guess-form" autocomplete="off">
+      <label for="guess" class="visually-hidden">Your guess</label>
+      <input
+        id="guess"
+        name="guess"
+        type="text"
+        placeholder="Type a guess"
+        autocapitalize="none"
+        autocorrect="off"
+        spellcheck="false"
+        maxlength="30"
+        disabled
+      />
+      <button type="submit" disabled>Guess</button>
+    </form>
+  </div>
 
-      <p id="status" class="status" role="status" aria-live="polite"></p>
+  <p id="status" class="status" role="status" aria-live="polite"></p>
 
-      <section id="end" class="end" hidden aria-labelledby="end-title">
-        <h2 id="end-title" tabindex="-1"></h2>
-        <p id="end-score" class="score"></p>
+  <section id="end" class="end" hidden aria-labelledby="end-title">
+    <h2 id="end-title" tabindex="-1"></h2>
+    <p id="end-score" class="score"></p>
 
-        <div id="share-area" class="share" hidden>
-          <button id="share-button" type="button">Copy result</button>
-          <span id="share-msg" role="status"></span>
-          <label id="share-fallback-label" for="share-fallback" class="share-fallback" hidden>
-            Copying didn't work here. Select and copy this text instead:
-            <textarea id="share-fallback" rows="3" readonly></textarea>
-          </label>
-        </div>
+    <div id="share-area" class="share" hidden>
+      <button id="share-button" type="button">Copy result</button>
+      <span id="share-msg" role="status"></span>
+      <label id="share-fallback-label" for="share-fallback" class="share-fallback" hidden>
+        Copying didn't work here. Select and copy this text instead:
+        <textarea id="share-fallback" rows="3" readonly></textarea>
+      </label>
+    </div>
 
-        <table class="reveal">
-          <caption>All clues, farthest to closest</caption>
-          <thead>
-            <tr><th scope="col">Clue</th><th scope="col">Word</th><th scope="col">Neighbor rank</th></tr>
-          </thead>
-          <tbody id="reveal-body"></tbody>
-        </table>
+    <figure id="end-map" class="map" hidden></figure>
 
-        <p id="countdown" class="countdown" hidden></p>
-        <p><a id="end-link" href={`${base}?practice`}>Try a past puzzle →</a></p>
-      </section>
+    <table class="reveal">
+      <caption>All clues, farthest to closest</caption>
+      <thead>
+        <tr><th scope="col">Clue</th><th scope="col">Word</th><th scope="col">Neighbor rank</th></tr>
+      </thead>
+      <tbody id="reveal-body"></tbody>
+    </table>
 
-      <section aria-labelledby="guesses-title">
-        <h2 id="guesses-title" class="visually-hidden">Your guesses</h2>
-        <ul id="guesses" class="guesses"></ul>
-      </section>
-    </main>
+    <p id="countdown" class="countdown" hidden></p>
+    <p class="end-links">
+      <a id="end-link" href={`${base}?practice`}>Try a past puzzle →</a>
+      <a id="end-how" href={`${base}how-it-works/`}>How does this work?</a>
+    </p>
+  </section>
 
-    <dialog id="stats" aria-labelledby="stats-title">
-      <h2 id="stats-title">Your stats</h2>
-      <p class="stats-note">Daily puzzles only, saved in this browser.</p>
-      <dl class="stat-grid">
-        <div><dt>Played</dt><dd id="st-played">0</dd></div>
-        <div><dt>Win %</dt><dd id="st-winpct">0</dd></div>
-        <div><dt>Streak</dt><dd id="st-streak">0</dd></div>
-        <div><dt>Best streak</dt><dd id="st-max">0</dd></div>
-      </dl>
-      <h3>Solved on clue</h3>
-      <ol id="st-dist" class="dist"></ol>
-      <p id="st-unavailable" class="stats-note" hidden>
-        This browser isn't letting the game save, so stats won't be kept.
-      </p>
-      <form method="dialog"><button type="submit">Close</button></form>
-    </dialog>
+  <section aria-labelledby="guesses-title">
+    <h2 id="guesses-title" class="visually-hidden">Your guesses</h2>
+    <ul id="guesses" class="guesses"></ul>
+  </section>
+</Layout>
 
-    <script>
-      import { dayNumber, formatCountdown, msUntilNextPuzzle, puzzleIdForDay } from "../lib/daily";
-      import { decodeTarget } from "../lib/decode";
-      import { temperature } from "../lib/feedback";
-      import { applyGuess, newGame, type GameState, type GuessOutcome } from "../lib/game";
-      import { isPracticeAllowed, pickPractice } from "../lib/practice";
-      import { score, TOTAL_CLUES } from "../lib/score";
-      import { shareText } from "../lib/share";
-      import { computeStats } from "../lib/stats";
-      import { browserStore, loadSave, writeSave } from "../lib/storage";
-      import type { Puzzle, PuzzleFile } from "../lib/types";
-      import { loadVectors, type WordVectors } from "../lib/vectors";
+<script>
+  import { dayNumber, formatCountdown, msUntilNextPuzzle, puzzleIdForDay } from "../lib/daily";
+  import { decodeTarget } from "../lib/decode";
+  import { temperature } from "../lib/feedback";
+  import { applyGuess, newGame, type GameState, type GuessOutcome } from "../lib/game";
+  import { isPracticeAllowed, pickPractice } from "../lib/practice";
+  import { score, TOTAL_CLUES } from "../lib/score";
+  import { shareText } from "../lib/share";
+  import { browserStore, loadSave, writeSave } from "../lib/storage";
+  import type { Puzzle, PuzzleFile } from "../lib/types";
+  import { loadVectors, type WordVectors } from "../lib/vectors";
+  import { base, dataUrl, href, now, params } from "../scripts/env";
+  import { renderMap } from "../scripts/map-render";
 
-      type Mode =
-        | { kind: "daily"; day: number }
-        | { kind: "practice"; id: number }
-        | { kind: "dev"; id: number }
-        | { kind: "practice-empty" };
+  type Mode =
+    | { kind: "daily"; day: number }
+    | { kind: "practice"; id: number }
+    | { kind: "dev"; id: number }
+    | { kind: "practice-empty" };
 
-      const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
-      const dataUrl = `${base}data/`;
-      const params = new URLSearchParams(location.search);
-      // Dev-only overrides: ?date=YYYY-MM-DD pretends it's that UTC day; ?id=N plays any puzzle.
-      const devDate = import.meta.env.DEV ? params.get("date") : null;
-      const now = () => (devDate ? Date.parse(`${devDate}T12:00:00Z`) : Date.now());
+  const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+  const els = {
+    label: $("puzzle-label"),
+    counter: $("counter"),
+    navDaily: $<HTMLAnchorElement>("nav-daily"),
+    navPractice: $<HTMLAnchorElement>("nav-practice"),
+    play: $("play"),
+    clues: $<HTMLOListElement>("clues"),
+    form: $<HTMLFormElement>("guess-form"),
+    input: $<HTMLInputElement>("guess"),
+    button: document.querySelector<HTMLButtonElement>("#guess-form button")!,
+    status: $("status"),
+    guesses: $<HTMLUListElement>("guesses"),
+    end: $("end"),
+    endTitle: $("end-title"),
+    endScore: $("end-score"),
+    endMap: $("end-map"),
+    shareArea: $("share-area"),
+    shareButton: $<HTMLButtonElement>("share-button"),
+    shareMsg: $("share-msg"),
+    shareFallbackLabel: $("share-fallback-label"),
+    shareFallback: $<HTMLTextAreaElement>("share-fallback"),
+    revealBody: $("reveal-body"),
+    countdown: $("countdown"),
+    endLink: $<HTMLAnchorElement>("end-link"),
+    endHow: $<HTMLAnchorElement>("end-how"),
+  };
 
-      const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
-      const els = {
-        label: $("puzzle-label"),
-        counter: $("counter"),
-        navDaily: $<HTMLAnchorElement>("nav-daily"),
-        navPractice: $<HTMLAnchorElement>("nav-practice"),
-        navStats: $<HTMLButtonElement>("nav-stats"),
-        play: $("play"),
-        clues: $<HTMLOListElement>("clues"),
-        form: $<HTMLFormElement>("guess-form"),
-        input: $<HTMLInputElement>("guess"),
-        button: document.querySelector<HTMLButtonElement>("#guess-form button")!,
-        status: $("status"),
-        guesses: $<HTMLUListElement>("guesses"),
-        end: $("end"),
-        endTitle: $("end-title"),
-        endScore: $("end-score"),
-        shareArea: $("share-area"),
-        shareButton: $<HTMLButtonElement>("share-button"),
-        shareMsg: $("share-msg"),
-        shareFallbackLabel: $("share-fallback-label"),
-        shareFallback: $<HTMLTextAreaElement>("share-fallback"),
-        revealBody: $("reveal-body"),
-        countdown: $("countdown"),
-        endLink: $<HTMLAnchorElement>("end-link"),
-        stats: $<HTMLDialogElement>("stats"),
-      };
+  function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text: string) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    e.textContent = text;
+    return e;
+  }
 
-      /** Same-page link that keeps the dev date override, if any. */
-      function href(query: Record<string, string> = {}): string {
-        const q = new URLSearchParams(query);
-        if (devDate) q.set("date", devDate);
-        const s = q.toString().replace(/=(&|$)/g, "$1");
-        return s ? `${base}?${s}` : base;
-      }
+  const store = browserStore();
+  const save = loadSave(store);
 
-      function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, text: string) {
-        const e = document.createElement(tag);
-        if (cls) e.className = cls;
-        e.textContent = text;
-        return e;
-      }
+  // ---------- rendering ----------
+  function renderClues(puzzle: Puzzle, state: GameState) {
+    els.clues.replaceChildren(
+      ...puzzle.clues
+        .slice(0, state.revealed)
+        .map((c, i) => el("li", i === state.revealed - 1 ? "clue latest" : "clue", c.w)),
+    );
+    els.counter.textContent = `· clue ${state.revealed} of ${TOTAL_CLUES}`;
+  }
 
-      // ---------- persistence and stats ----------
-      const store = browserStore();
-      const save = loadSave(store);
-
-      function renderStats(today: number) {
-        const s = computeStats(save.daily, today);
-        $("st-played").textContent = String(s.played);
-        $("st-winpct").textContent = String(s.winPct);
-        $("st-streak").textContent = String(s.currentStreak);
-        $("st-max").textContent = String(s.maxStreak);
-        const most = Math.max(1, ...s.distribution);
-        $("st-dist").replaceChildren(
-          ...s.distribution.map((n, i) => {
-            const li = el("li", "", "");
-            li.append(el("span", "dist-label", String(i + 1)));
-            const bar = el("span", "dist-bar", String(n));
-            bar.style.width = `${Math.max(8, (n / most) * 100)}%`;
-            li.append(bar);
-            li.setAttribute("aria-label", `Clue ${i + 1}: ${n} ${n === 1 ? "win" : "wins"}`);
-            return li;
-          }),
-        );
-        $("st-unavailable").hidden = store !== null;
-      }
-
-      // ---------- rendering ----------
-      function renderClues(puzzle: Puzzle, state: GameState) {
-        els.clues.replaceChildren(
-          ...puzzle.clues
-            .slice(0, state.revealed)
-            .map((c, i) => el("li", i === state.revealed - 1 ? "clue latest" : "clue", c.w)),
-        );
-        els.counter.textContent = `· clue ${state.revealed} of ${TOTAL_CLUES}`;
-      }
-
-      function renderGuesses(state: GameState) {
-        els.guesses.replaceChildren(
-          ...[...state.guesses].reverse().map((g) => {
-            const li = el("li", "guess", "");
-            li.append(el("span", "word", g.word));
-            if (g.rank === null) {
-              li.append(el("span", "chip correct", "✓ Correct"));
-            } else {
-              const t = temperature(g.rank);
-              li.append(el("span", "rank", `#${g.rank.toLocaleString()}`));
-              li.append(el("span", `chip ${t.level}`, `${t.emoji} ${t.label}`));
-            }
-            return li;
-          }),
-        );
-      }
-
-      function describe(outcome: GuessOutcome, vocabSize: number): string {
-        switch (outcome.kind) {
-          case "wrong": {
-            const t = temperature(outcome.rank);
-            return `${t.label}: #${outcome.rank.toLocaleString()} closest of ${vocabSize.toLocaleString()} words. Here's another clue.`;
-          }
-          case "unknown":
-            return `"${outcome.word}" isn't in our word list. That one's free, try another.`;
-          case "repeat":
-            return `You already guessed "${outcome.word}".`;
-          case "invalid":
-            return "Type a word using letters only.";
-          default:
-            return "";
-        }
-      }
-
-      let countdownTimer: number | undefined;
-      function startCountdown(day: number) {
-        const tick = () => {
-          if (dayNumber(now()) > day) {
-            els.countdown.textContent = "A new puzzle is ready. Reload to play it.";
-            window.clearInterval(countdownTimer);
-          } else {
-            els.countdown.textContent = `Next puzzle in ${formatCountdown(msUntilNextPuzzle(now()))}`;
-          }
-        };
-        els.countdown.hidden = false;
-        tick();
-        countdownTimer = window.setInterval(tick, 30_000);
-      }
-
-      function setupShare(day: number, state: GameState) {
-        const text = shareText(day, state, new URL(base, location.origin).href);
-        els.shareArea.hidden = false;
-        els.shareButton.addEventListener("click", async () => {
-          try {
-            await navigator.clipboard.writeText(text);
-            els.shareMsg.textContent = "Copied!";
-          } catch {
-            els.shareFallback.value = text;
-            els.shareFallbackLabel.hidden = false;
-            els.shareFallback.focus();
-            els.shareFallback.select();
-          }
-        });
-      }
-
-      function renderEnd(mode: Mode, puzzle: Puzzle, target: string, state: GameState, announce: boolean) {
-        const won = state.status === "won";
-        const solvedOn = won ? state.guesses.at(-1)!.clue : null;
-        els.endTitle.textContent = won ? `You got it: ${target}` : `The word was ${target}`;
-        els.endScore.textContent = won
-          ? `Solved on clue ${solvedOn} of ${TOTAL_CLUES} · score ${score(solvedOn)}/${TOTAL_CLUES}`
-          : `Out of clues · score 0/${TOTAL_CLUES}`;
-        els.revealBody.replaceChildren(
-          ...puzzle.clues.map((c, i) => {
-            const tr = document.createElement("tr");
-            tr.append(el("td", "", String(i + 1)), el("td", "", c.w), el("td", "", `#${c.rank}`));
-            return tr;
-          }),
-        );
-        if (mode.kind === "daily") {
-          setupShare(mode.day, state);
-          startCountdown(mode.day);
-          els.endLink.textContent = "Try a past puzzle →";
-          els.endLink.href = href({ practice: "" });
-          els.endLink.hidden = mode.day === 1;
+  function renderGuesses(state: GameState) {
+    els.guesses.replaceChildren(
+      ...[...state.guesses].reverse().map((g) => {
+        const li = el("li", "guess", "");
+        li.append(el("span", "word", g.word));
+        if (g.rank === null) {
+          li.append(el("span", "chip correct", "✓ Correct"));
         } else {
-          els.endLink.textContent = "Another practice puzzle →";
-          els.endLink.href = href({ practice: "", after: String(puzzle.id) });
+          const t = temperature(g.rank);
+          li.append(el("span", "rank", `#${g.rank.toLocaleString()}`));
+          li.append(el("span", `chip ${t.level}`, `${t.emoji} ${t.label}`));
         }
-        els.end.hidden = false;
-        els.input.disabled = true;
-        els.button.disabled = true;
-        if (announce) {
-          els.status.textContent = won ? "Correct!" : `Out of clues. The word was ${target}.`;
-          els.endTitle.focus();
-        }
+        return li;
+      }),
+    );
+  }
+
+  function describe(outcome: GuessOutcome, vocabSize: number): string {
+    switch (outcome.kind) {
+      case "wrong": {
+        const t = temperature(outcome.rank);
+        return `${t.label}: #${outcome.rank.toLocaleString()} closest of ${vocabSize.toLocaleString()} words. Here's another clue.`;
       }
+      case "unknown":
+        return `"${outcome.word}" isn't in our word list. That one's free, try another.`;
+      case "repeat":
+        return `You already guessed "${outcome.word}".`;
+      case "invalid":
+        return "Type a word using letters only.";
+      default:
+        return "";
+    }
+  }
 
-      // ---------- mode selection ----------
-      function chooseMode(today: number, count: number): Mode {
-        if (import.meta.env.DEV && params.has("id")) {
-          const id = Number(params.get("id"));
-          if (id >= 1 && id <= count) return { kind: "dev", id };
-        }
-        if (params.has("practice")) {
-          const requested = Number(params.get("practice"));
-          if (isPracticeAllowed(requested, today, count)) return { kind: "practice", id: requested };
-          const after = Number(params.get("after")) || undefined;
-          const id = pickPractice(today, count, after);
-          if (id === null) return { kind: "practice-empty" };
-          history.replaceState(null, "", href({ practice: String(id) }));
-          return { kind: "practice", id };
-        }
-        return { kind: "daily", day: today };
+  let countdownTimer: number | undefined;
+  function startCountdown(day: number) {
+    const tick = () => {
+      if (dayNumber(now()) > day) {
+        els.countdown.textContent = "A new puzzle is ready. Reload to play it.";
+        window.clearInterval(countdownTimer);
+      } else {
+        els.countdown.textContent = `Next puzzle in ${formatCountdown(msUntilNextPuzzle(now()))}`;
       }
+    };
+    els.countdown.hidden = false;
+    tick();
+    countdownTimer = window.setInterval(tick, 30_000);
+  }
 
-      async function main() {
-        const res = await fetch(`${dataUrl}puzzles.json`);
-        if (!res.ok) throw new Error("Could not load puzzles");
-        const { puzzles } = (await res.json()) as PuzzleFile;
+  function setupShare(day: number, state: GameState) {
+    const text = shareText(day, state, new URL(base, location.origin).href);
+    els.shareArea.hidden = false;
+    els.shareButton.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(text);
+        els.shareMsg.textContent = "Copied!";
+      } catch {
+        els.shareFallback.value = text;
+        els.shareFallbackLabel.hidden = false;
+        els.shareFallback.focus();
+        els.shareFallback.select();
+      }
+    });
+  }
 
-        const today = dayNumber(now());
-        const mode = chooseMode(today, puzzles.length);
-        els.navDaily.href = href();
-        els.navPractice.href = href({ practice: "" });
-        els.navStats.addEventListener("click", () => {
-          renderStats(today);
-          els.stats.showModal();
-        });
-        (mode.kind === "daily" ? els.navDaily : els.navPractice).setAttribute("aria-current", "page");
+  function renderEnd(mode: Mode, puzzle: Puzzle, target: string, state: GameState, announce: boolean) {
+    const won = state.status === "won";
+    const solvedOn = won ? state.guesses.at(-1)!.clue : null;
+    els.endTitle.textContent = won ? `You got it: ${target}` : `The word was ${target}`;
+    els.endScore.textContent = won
+      ? `Solved on clue ${solvedOn} of ${TOTAL_CLUES} · score ${score(solvedOn)}/${TOTAL_CLUES}`
+      : `Out of clues · score 0/${TOTAL_CLUES}`;
+    els.revealBody.replaceChildren(
+      ...puzzle.clues.map((c, i) => {
+        const tr = document.createElement("tr");
+        tr.append(el("td", "", String(i + 1)), el("td", "", c.w), el("td", "", `#${c.rank}`));
+        return tr;
+      }),
+    );
+    // The map names the answer, so it is only ever drawn here, after the game is over.
+    renderMap(els.endMap, puzzle, target);
+    els.endHow.href = href("how-it-works/");
+    if (mode.kind === "daily") {
+      setupShare(mode.day, state);
+      startCountdown(mode.day);
+      els.endLink.textContent = "Try a past puzzle →";
+      els.endLink.href = href("", { practice: "" });
+      els.endLink.hidden = mode.day === 1;
+    } else {
+      els.endLink.textContent = "Another practice puzzle →";
+      els.endLink.href = href("", { practice: "", after: String(puzzle.id) });
+    }
+    els.end.hidden = false;
+    els.input.disabled = true;
+    els.button.disabled = true;
+    if (announce) {
+      els.status.textContent = won ? "Correct!" : `Out of clues. The word was ${target}.`;
+      els.endTitle.focus();
+    }
+  }
 
-        if (mode.kind === "practice-empty") {
-          els.label.textContent = "Practice";
-          els.play.hidden = true;
-          els.status.textContent =
-            "Practice replays past daily puzzles, and there aren't any yet. Come back tomorrow!";
-          return;
-        }
+  // ---------- mode selection ----------
+  function chooseMode(today: number, count: number): Mode {
+    if (import.meta.env.DEV && params.has("id")) {
+      const id = Number(params.get("id"));
+      if (id >= 1 && id <= count) return { kind: "dev", id };
+    }
+    if (params.has("practice")) {
+      const requested = Number(params.get("practice"));
+      if (isPracticeAllowed(requested, today, count)) return { kind: "practice", id: requested };
+      const after = Number(params.get("after")) || undefined;
+      const id = pickPractice(today, count, after);
+      if (id === null) return { kind: "practice-empty" };
+      history.replaceState(null, "", href("", { practice: String(id) }));
+      return { kind: "practice", id };
+    }
+    return { kind: "daily", day: today };
+  }
 
-        const puzzleId = mode.kind === "daily" ? puzzleIdForDay(mode.day, puzzles.length) : mode.id;
-        const puzzle = puzzles.find((p) => p.id === puzzleId)!;
-        const target = decodeTarget(puzzle.t, puzzle.id);
-        els.label.textContent =
-          mode.kind === "daily"
-            ? `Puzzle #${mode.day}`
-            : `${mode.kind === "dev" ? "Dev" : "Practice"} · puzzle #${puzzle.id}`;
+  async function main() {
+    const res = await fetch(`${dataUrl}puzzles.json`);
+    if (!res.ok) throw new Error("Could not load puzzles");
+    const { puzzles } = (await res.json()) as PuzzleFile;
 
-        // Vectors are ~2.7 MB; start loading now, wait only when a guess needs them.
-        const vectorsPromise: Promise<WordVectors> = loadVectors(dataUrl);
+    const today = dayNumber(now());
+    const mode = chooseMode(today, puzzles.length);
+    (mode.kind === "daily" ? els.navDaily : els.navPractice).setAttribute("aria-current", "page");
 
-        const saveKey = mode.kind === "daily" ? String(mode.day) : null;
-        let state: GameState = (saveKey && save.daily[saveKey]) || newGame();
-        renderClues(puzzle, state);
-        renderGuesses(state);
-        if (state.status !== "playing") {
-          renderEnd(mode, puzzle, target, state, false);
-          return;
-        }
-        els.input.disabled = false;
+    if (mode.kind === "practice-empty") {
+      els.label.textContent = "Practice";
+      els.play.hidden = true;
+      els.status.textContent =
+        "Practice replays past daily puzzles, and there aren't any yet. Come back tomorrow!";
+      return;
+    }
+
+    const puzzleId = mode.kind === "daily" ? puzzleIdForDay(mode.day, puzzles.length) : mode.id;
+    const puzzle = puzzles.find((p) => p.id === puzzleId)!;
+    const target = decodeTarget(puzzle.t, puzzle.id);
+    els.label.textContent =
+      mode.kind === "daily"
+        ? `Puzzle #${mode.day}`
+        : `${mode.kind === "dev" ? "Dev" : "Practice"} · puzzle #${puzzle.id}`;
+
+    // Vectors are ~2.7 MB; start loading now, wait only when a guess needs them.
+    const vectorsPromise: Promise<WordVectors> = loadVectors(dataUrl);
+
+    const saveKey = mode.kind === "daily" ? String(mode.day) : null;
+    let state: GameState = (saveKey && save.daily[saveKey]) || newGame();
+    renderClues(puzzle, state);
+    renderGuesses(state);
+    if (state.status !== "playing") {
+      renderEnd(mode, puzzle, target, state, false);
+      return;
+    }
+    els.input.disabled = false;
+    els.button.disabled = false;
+    els.input.focus();
+
+    els.form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (state.status !== "playing") return;
+      const raw = els.input.value;
+      els.button.disabled = true;
+      let vectors: WordVectors;
+      try {
+        vectors = await vectorsPromise;
+      } catch {
+        els.status.textContent = "Couldn't load the word list. Please reload the page.";
         els.button.disabled = false;
-        els.input.focus();
-
-        els.form.addEventListener("submit", async (e) => {
-          e.preventDefault();
-          if (state.status !== "playing") return;
-          const raw = els.input.value;
-          els.button.disabled = true;
-          let vectors: WordVectors;
-          try {
-            vectors = await vectorsPromise;
-          } catch {
-            els.status.textContent = "Couldn't load the word list. Please reload the page.";
-            els.button.disabled = false;
-            return;
-          }
-          const result = applyGuess(state, raw, {
-            target,
-            rankOf: (w) => vectors.rankOf(w, target),
-          });
-          state = result.state;
-          if (saveKey) {
-            save.daily[saveKey] = state;
-            writeSave(store, save);
-          }
-          els.input.value = "";
-          els.button.disabled = false;
-          renderClues(puzzle, state);
-          renderGuesses(state);
-          if (state.status === "playing") {
-            els.status.textContent = describe(result.outcome, vectors.size);
-            els.input.focus();
-          } else {
-            renderEnd(mode, puzzle, target, state, true);
-          }
-        });
+        return;
       }
-
-      main().catch((err) => {
-        console.error(err);
-        els.label.textContent = "Couldn't load the puzzle. Please reload.";
+      const result = applyGuess(state, raw, {
+        target,
+        rankOf: (w) => vectors.rankOf(w, target),
       });
-    </script>
-  </body>
-</html>
+      state = result.state;
+      if (saveKey) {
+        save.daily[saveKey] = state;
+        writeSave(store, save);
+      }
+      els.input.value = "";
+      els.button.disabled = false;
+      renderClues(puzzle, state);
+      renderGuesses(state);
+      if (state.status === "playing") {
+        els.status.textContent = describe(result.outcome, vectors.size);
+        els.input.focus();
+      } else {
+        renderEnd(mode, puzzle, target, state, true);
+      }
+    });
+  }
+
+  main().catch((err) => {
+    console.error(err);
+    els.label.textContent = "Couldn't load the puzzle. Please reload.";
+  });
+</script>
