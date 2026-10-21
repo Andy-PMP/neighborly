@@ -4,7 +4,7 @@ Daily browser word game: guess a hidden word from its embedding nearest neighbor
 
 ## Decisions
 - Word vectors: GloVe 6B 300d (PDDL 1.0). Dictionary filter: SCOWL size 50 (permissive). Blocklist: LDNOOBW en (CC BY 4.0) + `pipeline/blocklist_extra.txt`.
-- Front end (P2+): Astro + TypeScript, no UI framework; Vitest. Deploy as a GitHub Pages project page (`base: '/nearby'`) via `withastro/action`, linked from the Astro portfolio.
+- Front end (P2+): Astro + TypeScript, no UI framework; Vitest. Live at **https://neighborly.amandapatricks.com** (GitHub repo `Andy-PMP/neighborly`, Pages "GitHub Actions" source, custom domain via a Namecheap CNAME `neighborly` → `andy-pmp.github.io`). `.github/workflows/deploy.yml` (same shape as the portfolio's) builds from the repo root and publishes `web/dist` on every push to main. No `base` (subdomain root). Linked from the portfolio repo `Andy-PMP/amandapatricks.com` via `src/content/projects/neighborly.md`.
 - Generated data in `data/` is committed; the raw sources in `pipeline/.cache/` are not.
 
 ## Environment
@@ -49,7 +49,8 @@ Windows PowerShell 5.1 drops `--` when passing args through npm, so `npm run pre
 - Name: the game is **Neighborly** (renamed from Nearby during P4). Internal identifiers keep "nearby" on purpose: storage key `nearby:v1`, obfuscation salt, repo/folder and npm package names. Don't rename those (it would wipe saves or change every answer token).
 - P4: the 2D map names the answer, so it is only drawn after a game ends (`renderEnd`) or, on `/how-it-works/`, for daily games in `finishedDays(save)`. Label layout is in `lib/map.ts`; `data.test.ts` lays out all real puzzles and fails on real label collisions. Explainer text is `docs/how-it-works.md` (plain Markdown + raw HTML, imported by `web/src/pages/how-it-works.astro`); its example words must not be puzzle answers.
 - Clue slots stay `[30, 22, 16, 11, 7, 4, 2, 1]` (owner chose 30 over 25/20 as harder).
-- Commit only when asked.
+- P5: theme toggle (Auto/Light/Dark, key `nearby:theme`, applied pre-paint by an inline script in `Layout.astro`); colour tokens live in three blocks in `global.css` (light, dark-by-device, dark-by-toggle) and `contrast.test.ts` enforces WCAG AA on all of them and that the two dark blocks match.
+- **Never commit or push.** The owner does both (pushing to main deploys the live site). Leave changes in the working tree and suggest a commit message.
 
 ## Phases
 - [x] **P0 Setup**: repo layout, venv, ruff/pytest config, CI workflow, README, this file
@@ -61,4 +62,6 @@ Windows PowerShell 5.1 drops `--` when passing args through npm, so `npm run pre
   - [x] Owner play-test of P3 in a browser: no notes
 - [x] **P4 How it works + 2D map**: `docs/how-it-works.md` rendered at `/how-it-works/`; map on the end screen and (finished daily games only) on the explainer; renamed the game to Neighborly (101 tests)
   - [ ] Owner play-test of P4 in a browser (no browser tool in the P4 session): map look at phone width, dark mode, explainer read-through
-- [ ] **P5 Polish + deploy**: accessibility pass, mobile, GitHub Pages deploy, link from portfolio
+  - [x] Owner play-test of P4: asked for a dark-mode toggle (added in P5)
+- [x] **P5 Polish + deploy**: theme toggle, accessibility pass (contrast test, live-region clue announcements, decorative emoji hidden, 24px+ targets, control borders), favicon, 404, OG tags, deploy workflow, portfolio entry text (156 tests)
+  - [ ] Owner: Pages source = GitHub Actions, DNS CNAME, custom domain + HTTPS, first deploy, screen-reader and 320px checks in a real browser, add the portfolio entry

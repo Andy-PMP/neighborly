@@ -129,6 +129,15 @@ const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
     return e;
   }
 
+  /** Temperature chip; the emoji is decorative, so screen readers only hear the word. */
+  function chip(level: string, emoji: string, label: string) {
+    const span = el("span", `chip ${level}`, "");
+    const icon = el("span", "", `${emoji} `);
+    icon.setAttribute("aria-hidden", "true");
+    span.append(icon, label);
+    return span;
+  }
+
   const store = browserStore();
   const save = loadSave(store);
 
@@ -148,22 +157,24 @@ const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
         const li = el("li", "guess", "");
         li.append(el("span", "word", g.word));
         if (g.rank === null) {
-          li.append(el("span", "chip correct", "✓ Correct"));
+          li.append(chip("correct", "✓", "Correct"));
         } else {
           const t = temperature(g.rank);
           li.append(el("span", "rank", `#${g.rank.toLocaleString()}`));
-          li.append(el("span", `chip ${t.level}`, `${t.emoji} ${t.label}`));
+          li.append(chip(t.level, t.emoji, t.label));
         }
         return li;
       }),
     );
   }
 
-  function describe(outcome: GuessOutcome, vocabSize: number): string {
+  /** Status-line text; it's an aria-live region, so this is also what screen readers announce. */
+  function describe(outcome: GuessOutcome, vocabSize: number, puzzle: Puzzle, state: GameState): string {
     switch (outcome.kind) {
       case "wrong": {
         const t = temperature(outcome.rank);
-        return `${t.label}: #${outcome.rank.toLocaleString()} closest of ${vocabSize.toLocaleString()} words. Here's another clue.`;
+        const clue = puzzle.clues[state.revealed - 1]!.w;
+        return `${t.label}: #${outcome.rank.toLocaleString()} closest of ${vocabSize.toLocaleString()} words. Clue ${state.revealed}: ${clue}.`;
       }
       case "unknown":
         return `"${outcome.word}" isn't in our word list. That one's free, try another.`;
@@ -328,7 +339,7 @@ const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
       renderClues(puzzle, state);
       renderGuesses(state);
       if (state.status === "playing") {
-        els.status.textContent = describe(result.outcome, vectors.size);
+        els.status.textContent = describe(result.outcome, vectors.size, puzzle, state);
         els.input.focus();
       } else {
         renderEnd(mode, puzzle, target, state, true);

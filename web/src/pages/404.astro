@@ -1,0 +1,13 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+---
+
+<Layout title="Page not found · Neighborly" description="This page doesn't exist." current="none">
+  <article class="prose">
+    <h1>Nothing nearby</h1>
+    <p>This page doesn't exist. Even the nearest neighbor is a long way off.</p>
+    <p><a href={base}>Play today's puzzle →</a></p>
+  </article>
+</Layout>

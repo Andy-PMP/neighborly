@@ -1,7 +1,7 @@
 ---
 interface Props {
-  /** "game": the brand is the page's h1 and the script marks Daily/Practice; "how": this page. */
-  current: "game" | "how";
+  /** "game": the brand is the page's h1 and the script marks Daily/Practice; "how": this page; "none": e.g. 404. */
+  current: "game" | "how" | "none";
 }
 const { current } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
@@ -26,11 +26,43 @@ const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
       aria-current={current === "how" ? "page" : undefined}>How it works</a
     >
     <button id="nav-stats" type="button" class="link-button">Stats</button>
+    <button id="theme-toggle" type="button" class="link-button" aria-label="Theme: Auto (follows your device). Change theme">
+      <span aria-hidden="true">◐</span>&nbsp;<span id="theme-label">Auto</span>
+    </button>
   </nav>
 </div>
 
 <script>
   import { href } from "../scripts/env";
+  import { THEME_KEY, nextTheme, parseTheme, themeLabel, type ThemePref } from "../lib/theme";
+
+  // Theme toggle. Layout.astro's inline head script has already applied the stored choice.
+  const toggle = document.getElementById("theme-toggle")!;
+  const label = document.getElementById("theme-label")!;
+  let theme: ThemePref = "auto";
+  try {
+    theme = parseTheme(localStorage.getItem(THEME_KEY));
+  } catch {
+    // storage unavailable: stay on auto, toggle still works for this page view
+  }
+  function showTheme() {
+    label.textContent = themeLabel(theme);
+    const detail = theme === "auto" ? "Auto (follows your device)" : themeLabel(theme);
+    toggle.setAttribute("aria-label", `Theme: ${detail}. Change theme`);
+  }
+  showTheme();
+  toggle.addEventListener("click", () => {
+    theme = nextTheme(theme);
+    if (theme === "auto") delete document.documentElement.dataset.theme;
+    else document.documentElement.dataset.theme = theme;
+    try {
+      if (theme === "auto") localStorage.removeItem(THEME_KEY);
+      else localStorage.setItem(THEME_KEY, theme);
+    } catch {
+      // not saved; fine
+    }
+    showTheme();
+  });
 
   // Keep the dev-only ?date override when moving between pages.
   const links: [string, string, Record<string, string>][] = [

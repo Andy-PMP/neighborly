@@ -1,15 +1,20 @@
+/* Colour tokens. Light is the default; dark applies when the device prefers it (unless the
+   theme toggle forced light) or when the toggle forced dark. Keep the two dark blocks identical.
+   contrast.test.ts checks these values against WCAG AA. */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   --bg: #f7f5f0;
   --surface: #ffffff;
   --text: #1d1d1f;
   --muted: #5b5b63;
   --border: #d9d6cf;
+  --control-border: #8a8780;
+  --dot: #6e6c66;
   --accent: #2d5bd7;
   --accent-text: #ffffff;
   --focus: #2d5bd7;
   --hot: #b3261e;
-  --warm: #b4570c;
+  --warm: #a8500a;
   --mild: #7a6a00;
   --cool: #2f6b8f;
   --cold: #3d4f9e;
@@ -18,12 +23,15 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
     --bg: #141418;
     --surface: #1e1e24;
     --text: #ececf1;
     --muted: #a5a5b0;
     --border: #34343d;
+    --control-border: #6c6c78;
+    --dot: #8e8e9a;
     --accent: #8aa8ff;
     --accent-text: #10121a;
     --focus: #8aa8ff;
@@ -34,6 +42,26 @@
     --cold: #a8b6ff;
     --correct: #7fd99a;
   }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #141418;
+  --surface: #1e1e24;
+  --text: #ececf1;
+  --muted: #a5a5b0;
+  --border: #34343d;
+  --control-border: #6c6c78;
+  --dot: #8e8e9a;
+  --accent: #8aa8ff;
+  --accent-text: #10121a;
+  --focus: #8aa8ff;
+  --hot: #ff8a80;
+  --warm: #ffb066;
+  --mild: #e6d36a;
+  --cool: #8cc8ea;
+  --cold: #a8b6ff;
+  --correct: #7fd99a;
 }
 
 *,
@@ -132,7 +160,7 @@ input {
   flex: 1;
   min-width: 0;
   padding: 0 0.8rem;
-  border: 1px solid var(--border);
+  border: 1px solid var(--control-border);
   background: var(--surface);
   color: var(--text);
 }
@@ -256,12 +284,17 @@ a {
 
 nav {
   display: flex;
-  gap: 1rem;
-  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0 1rem;
+  align-items: center;
 }
 
+/* min-height 2rem keeps tap targets above WCAG 2.2's 24px minimum. */
 nav a,
 .link-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
   color: var(--accent);
   font: inherit;
   font-weight: 600;
@@ -277,7 +310,6 @@ nav a[aria-current="page"] {
   background: none;
   border: 0;
   padding: 0;
-  min-height: 0;
   cursor: pointer;
 }
 
@@ -427,7 +459,7 @@ dialog h3 {
 }
 
 .map-dot {
-  fill: var(--muted);
+  fill: var(--dot);
 }
 
 .map-target {
@@ -523,7 +555,7 @@ dialog h3 {
   min-height: 2.5rem;
   padding: 0 0.5rem;
   border-radius: var(--radius);
-  border: 1px solid var(--border);
+  border: 1px solid var(--control-border);
   background: var(--surface);
   color: var(--text);
 }
