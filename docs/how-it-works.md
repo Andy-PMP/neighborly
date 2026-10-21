@@ -1,6 +1,6 @@
 <!-- Example words here are deliberately NOT puzzle answers (check pipeline/targets.txt before adding any). -->
 
-## The game in one sentence
+## The concept
 
 Every clue is one of the hidden word's *neighbors in meaning*. The first clue is a distant neighbor, and each wrong guess brings a closer one, until the last clue is the hidden word's very nearest neighbor.
 
