@@ -70,6 +70,11 @@
   box-sizing: border-box;
 }
 
+/* Class rules like `.share { display: flex }` would otherwise beat the UA's [hidden] style. */
+[hidden] {
+  display: none !important;
+}
+
 body {
   margin: 0;
   background: var(--bg);
